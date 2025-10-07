@@ -81,7 +81,7 @@ python src/analysis.py
 ```
 
 ### Google Colab'da Çalıştırma
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KULLANICIADIN/air-quality-ml-analysis/blob/main/notebooks/air_quality_analysis.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irembzkrtglcck/air-quality-ml-analysis/blob/main/notebooks/air_quality_analysis.ipynb)
 
 ## 📂 Proje Yapısı
 
@@ -200,7 +200,7 @@ Bu proje MIT lisansı altında lisanslanmıştır - detaylar için [LICENSE](LIC
 
 **İrem BOZKURT GÜLÇİÇEK**  
 📧 Email: 7irembozkurt@gmail.com  
-🔗 LinkedIn: [linkedin.com/in/7irembozkurt](https://linkedin.com/in/7irembozkurt)
+🔗 LinkedIn: [linkedin.com/in/irembozkurt7/](https://www.linkedin.com/in/irembozkurt7/)
 
 ### 🎓 Danışman
 **Dr. Öğr. Üyesi Süha TUNA**  
