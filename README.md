@@ -185,7 +185,7 @@ Detaylı metodoloji ve sonuçlar için:
 
 ## 🤝 Katkıda Bulunma
 
-Katkılarınızı bekliyoruz! Lütfen:
+Katkılarınızı bekliyorum! Lütfen:
 1. Fork edin
 2. Feature branch oluşturun (`git checkout -b feature/YeniOzellik`)
 3. Commit edin (`git commit -m 'Yeni özellik eklendi'`)
@@ -199,8 +199,8 @@ Bu proje MIT lisansı altında lisanslanmıştır - detaylar için [LICENSE](LIC
 ## 👤 Yazar
 
 **İrem BOZKURT GÜLÇİÇEK**  
-📧 Email: irem.bozkurt@example.com  
-🔗 LinkedIn: [linkedin.com/in/irembozkurt](https://linkedin.com/in/irembozkurt)
+📧 Email: 7irembozkurt@gmail.com  
+🔗 LinkedIn: [linkedin.com/in/7irembozkurt](https://linkedin.com/in/7irembozkurt)
 
 ### 🎓 Danışman
 **Dr. Öğr. Üyesi Süha TUNA**  
@@ -216,4 +216,4 @@ Proje Danışmanı
 
 ⭐ **Projeyi beğendiyseniz yıldız vermeyi unutmayın!**
 
-📅 **Son Güncelleme:** Ekim 2025
+📅 **Son Güncelleme:07 Ekim 2025
