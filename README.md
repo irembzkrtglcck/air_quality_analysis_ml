@@ -51,8 +51,9 @@ Bu çalışmada, 5000 örnek ve 9 özellik içeren hava kalitesi veri seti üzer
 
 ```bash
 # 1. Repo'yu klonla
-git clone https://github.com/KULLANICIADIN/air-quality-ml-analysis.git
-cd air-quality-ml-analysis
+git clone https://github.com/irembzkrtglcck/air_quality_analysis_ml.git
+cd air_quality_analysis_ml
+
 
 # 2. Sanal ortam oluştur (önerilen)
 python -m venv venv
