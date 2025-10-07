@@ -1,10 +1,10 @@
-# 🔬 Metodoloji Dokümantasyonu
+# Metodoloji Dokümantasyonu
 
 Bu belge, hava kalitesi analizi projesinde kullanılan tüm yöntemlerin detaylı açıklamalarını içerir.
 
 ---
 
-## 📚 İçindekiler
+## İçindekiler
 
 1. [Veri Ön İşleme](#1-veri-ön-işleme)
 2. [Özellik Mühendisliği](#2-özellik-mühendisliği)
