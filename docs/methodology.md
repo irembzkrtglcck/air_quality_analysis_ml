@@ -1,197 +1,72 @@
-# Metodoloji Dokümantasyonu
+# Methodology
 
-Bu belge, hava kalitesi analizi projesinde kullanılan tüm yöntemlerin detaylı açıklamalarını içerir.
+Bu çalışma, **hava kalitesi** sınıflarını (Good, Moderate, Poor, Hazardous) tahmin etmek için bir uçtan uca makine öğrenmesi hattı (ML pipeline) uygular. Aşağıda veri işleme, modelleme, değerlendirme ve ek analiz adımları özetlenmiştir.
 
----
+## 1) Veri ve Hedef
+- Veri seti: ~**5000 örnek / 9 özellik**.
+- Hedef değişken: **Air Quality** (çok sınıflı: Good, Moderate, Poor, Hazardous).
+- Sınıf dağılımında dengesizlik bulunduğundan, eğitimde yeniden örnekleme uygulanmıştır.
 
-## İçindekiler
+## 2) Veri Ön İşleme
+- **Temizlik:** Fiziksel olarak hatalı değerler (ör. negatif PM/SO₂) temizlendi veya uygun istatistiklerle (medyan) düzeltildi.
+- **Ölçekleme:** Sayısal özellikler **StandardScaler** ile normalize edildi.
+- **Etiketleme:** Hedef değişken sayısal etiketlere dönüştürüldü (Label Encoding).
 
-1. [Veri Ön İşleme](#1-veri-ön-işleme)
-2. [Özellik Mühendisliği](#2-özellik-mühendisliği)
-3. [Boyut İndirgeme Teknikleri](#3-boyut-indirgeme-teknikleri)
-4. [Sınıflandırma Modelleri](#4-sınıflandırma-modelleri)
-5. [Kümeleme Analizi](#5-kümeleme-analizi)
-6. [Değerlendirme Metrikleri](#6-değerlendirme-metrikleri)
+## 3) Sınıf Dengesizliği
+- Eğitim verisi üzerinde **SMOTE** kullanılarak azınlık sınıfları sentetik örneklerle dengelendi.
+- **Test verisi üzerinde SMOTE uygulanmadı** (genelleme/gerçek dünya performansını korumak için).
 
----
+## 4) Boyut İndirgeme (Analitik)
+- **PCA**: Varyansı en iyi temsil eden doğrusal bileşenlerle veri yapısı incelendi (2B/3B görselleştirmeler).
+- **LDA**: Sınıf ayrımını maksimize eden doğrultular üzerinden **denetimli** indirgeme.
+- **t-SNE**: Doğrusal olmayan komşuluk ilişkilerinin görselleştirilmesi (2B/3B).
 
-## 1. Veri Ön İşleme
+> Not: Bu yöntemler **model performansından bağımsız** olarak veri yapısını anlamak ve görselleştirmek için kullanıldı; sınıflandırma modeli eğitiminde ana veri temsili korunmuştur.
 
-### 1.1. Eksik Değer Kontrolü
+## 5) Eğitim / Doğrulama Kurulumu
+- **Train/Test bölünmesi:** %80 / %20, **Stratified** (sınıf oranlarını koruyacak şekilde).
+- **Çapraz doğrulama:** **5-katlı Stratified K-Fold**.
+- **Hiperparametre araması:** Yönetilebilir parametre uzaylarında **GridSearchCV** ile.
+- Eğitim, **SMOTE ile dengelenmiş eğitim seti** üzerinde yapıldı; değerlendirme **ham test setinde** raporlandı.
 
-```python
-# Eksik değer kontrolü
-print(air_quality.isnull().sum())
-```
+## 6) Modeller
+Aşağıdaki sınıflandırıcılar optimize edilip karşılaştırıldı:
+- **Logistic Regression** (L2 düzenlileştirme, `C`, `solver` taraması)
+- **Decision Tree** (derinlik ve yaprak kısıtları ile aşırı öğrenmenin kontrolü)
+- **Random Forest** (ağaç sayısı, derinlik ve bölünme eşikleri)
+- **XGBoost** (öğrenme oranı, derinlik, n_estimators, subsample)
+- **SVM** (kernel, `C`, `gamma`)
+- **KNN** (k, ağırlıklandırma, mesafe metriği)
 
-**Sonuç:** Veri setinde eksik değer bulunmamaktadır.
+## 7) Değerlendirme Metrikleri
+- **Accuracy**, **Precision**, **Recall**, **F1-Score (macro)**.
+- **ROC-AUC (macro, OvR)**.
+- **Confusion Matrix** ve **Classification Report** ile hata tiplerinin analizi.
 
-### 1.2. Negatif Değer Temizleme
+## 8) Sonuçların Özeti (Seçili)
+- **Random Forest** test üzerinde **en iyi genel performansı** verdi  
+  – Accuracy ≈ **0.949**, F1 (macro) ≈ **0.920**, ROC-AUC (macro) ≈ **0.995**.  
+- **XGBoost** çapraz doğrulamada en yüksek skoru elde etti  
+  – CV Score ≈ **0.971**, test Accuracy ≈ **0.946**, F1 (macro) ≈ **0.919**, ROC-AUC ≈ **0.993**.  
+- Sınıf dengesizliği SMOTE ile iyileştirildi; özellikle **Hazardous** sınıfında kazanım gözlendi.
+- Modeller arası farklar düşük olup, ensemble yöntemler (RF, XGB) açık şekilde öne çıktı.
 
-**Problem:** Fiziksel olarak negatif olamayan değişkenlerde negatif değerler tespit edildi.
+## 9) Denetimsiz Öğrenme (Karşılaştırmalı)
+- **K-Means**: Dirsek (elbow) ve Silhouette değerlendirmesiyle **k=4** makul bulundu; sınıflarla kısmi/ölçülebilir örtüşme elde edildi.
+- **DBSCAN**: Parametre duyarlı (eps, min_samples); veri yoğunluk yapısından ötürü yüksek gürültü oranı işaretleyebildi.
+- Sonuç: Bu veri setinde **K-Means**, DBSCAN’a kıyasla daha **tutarlı** kümeler üretti.
 
-| Değişken | Negatif Sayısı |
-|----------|----------------|
-| PM10 | 1 |
-| SO2 | 30 |
-
-**Çözüm:** Medyan imputation
-
-```python
-# Medyan ile doldurma
-air_quality.loc[air_quality['PM10'] < 0, 'PM10'] = air_quality['PM10'].median()
-air_quality.loc[air_quality['SO2'] < 0, 'SO2'] = air_quality['SO2'].median()
-```
-
-**Neden Medyan?**
-- Aykırı değerlerden etkilenmez
-- Dağılımı korur
-- Ortalamaya göre daha robust
-
-### 1.3. Standardizasyon
-
-**Yöntem:** StandardScaler (Z-score normalizasyonu)
-
-```python
-from sklearn.preprocessing import StandardScaler
-
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-```
-
-**Formül:**
-```
-z = (x - μ) / σ
-```
-
-**Neden StandardScaler?**
-- Mesafe tabanlı algoritmalar için kritik (KNN, SVM)
-- PCA için gerekli
-- Farklı ölçekli değişkenleri aynı düzeye getirir
+## 10) Tekrarlanabilirlik ve Ortam
+- Tohum/rasgelelik: `random_state=42` (uygulandığı yerlerde).
+- Ana kütüphaneler: **scikit-learn**, **imbalanced-learn**, **xgboost**, **matplotlib**/**seaborn**.
+- Tüm deneyler aynı veri bölünmeleri ve CV protokolüyle yürütülmüştür.
 
 ---
 
-## 2. Özellik Mühendisliği
-
-### 2.1. Label Encoding (Hedef Değişken)
-
-```python
-from sklearn.preprocessing import LabelEncoder
-
-le = LabelEncoder()
-y_encoded = le.fit_transform(y)
-
-# Eşleşmeler:
-# Good → 0
-# Hazardous → 1
-# Moderate → 2
-# Poor → 3
-```
-
-### 2.2. Sınıf Dengesizliği - SMOTE
-
-**Problem:** Dengesiz sınıf dağılımı
-
-| Sınıf | SMOTE Öncesi | SMOTE Sonrası |
-|-------|--------------|---------------|
-| Good | 1,600 | 1,600 |
-| Moderate | 1,200 | 1,600 |
-| Poor | 800 | 1,600 |
-| Hazardous | 400 | 1,600 |
-
-**SMOTE Algoritması:**
-
-```python
-from imblearn.over_sampling import SMOTE
-
-smote = SMOTE(random_state=42)
-X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
-```
-
-**Nasıl Çalışır?**
-1. Azınlık sınıfından bir örnek seç
-2. K-en yakın komşularını bul
-3. Komşularla doğrusal interpolasyon yap
-4. Sentetik örnek oluştur
-
-**Avantajları:**
-- Overfitting riski düşük
-- Test setine dokunmaz
-- Hassas sınıflarda performansı artırır
-
----
-
-## 3. Boyut İndirgeme Teknikleri
-
-### 3.1. PCA (Principal Component Analysis)
-
-**Amaç:** Varyansı maksimize eden yeni eksenler bul
-
-**Uygulama:**
-```python
-from sklearn.decomposition import PCA
-
-pca = PCA(n_components=2)
-X_pca = pca.fit_transform(X_scaled)
-```
-
-**Sonuçlar:**
-- İlk 2 bileşen: %70.69 varyans
-- İlk 3 bileşen: %77.3 varyans
-
-**Avantajları:**
-- Unsupervised (etiket gerektirmez)
-- Çoklu bağlantıyı (multicollinearity) azaltır
-
-**Dezavantajları:**
-- Yorumlanabilirlik kaybı
-- Sınıf bilgisini kullanmaz
-
-### 3.2. LDA (Linear Discriminant Analysis)
-
-**Amaç:** Sınıflar arası ayrımı maksimize et
-
-**Formül:**
-```
-maximize: (between-class variance) / (within-class variance)
-```
-
-**Uygulama:**
-```python
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-
-lda = LDA(n_components=2)
-X_lda = lda.fit_transform(X_scaled, y)
-```
-
-**Kısıt:** n_components ≤ (n_classes - 1)
-
-**Avantajları:**
-- Sınıflandırma için optimize edilmiş
-- PCA'dan daha iyi sınıf ayrımı
-
-**Dezavantajları:**
-- Supervised (etiket gerektirir)
-- Doğrusallık varsayımı
-
-### 3.3. t-SNE (t-Distributed Stochastic Neighbor Embedding)
-
-**Amaç:** Yüksek boyutlu komşulukları düşük boyutta koru
-
-**Uygulama:**
-```python
-from sklearn.manifold import TSNE
-
-tsne = TSNE(n_components=2, perplexity=30, learning_rate='auto')
-X_tsne = tsne.fit_transform(X_scaled)
-```
-
-**Parametreler:**
-- **perplexity:** Komşu sayısı (5-50 arası önerilir)
-- **learning_rate:** Optimizasyon hızı
-
-**Avantajları:**
-- Doğrusal olmayan ilişkileri yakalar
-- Görselleştirmede mükemmel
-
-**Dezavantajları:**
+### Minimal Çalıştırma Adımları
+1. Veriyi yükle, temel temizlik ve **StandardScaler** uygula.  
+2. **Train/Test** (%80/%20, stratified) oluştur.  
+3. **SMOTE**’u *sadece eğitim setine* uygula.  
+4. Modeller için **GridSearchCV + 5-fold** ile hiperparametre tara.  
+5. **Test** setinde Accuracy, F1 (macro), ROC-AUC (macro) raporla.  
+6. İsteğe bağlı: PCA/LDA/t-SNE ile görselleştir; K-Means/DBSCAN ile kümeleme analizi yap.  
